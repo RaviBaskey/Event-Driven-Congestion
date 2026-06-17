@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipkart Gridlock 2.0 - Traffic Impact Predictor</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <header class="glass-header">
+        <h1>Flipkart Gridlock 2.0</h1>
+        <p>Event-Driven Traffic Impact Forecaster & Resource Allocator</p>
+    </header>
+
+    <main class="container">
+        <!-- Left Column: Input Form -->
+        <section class="glass-panel input-section">
+            <h2>Event Details</h2>
+            <form id="eventForm">
+                <div class="form-group">
+                    <label for="event_cause">Event Cause</label>
+                    <select id="event_cause" required>
+                        <option value="" disabled selected>Select cause...</option>
+                        <option value="vehicle_breakdown">Vehicle Breakdown</option>
+                        <option value="tree_fall">Tree Fall</option>
+                        <option value="water_logging">Water Logging</option>
+                        <option value="pot_holes">Pot Holes</option>
+                        <option value="public_event">Public Event</option>
+                        <option value="construction">Construction</option>
+                        <option value="accident">Accident</option>
+                        <option value="others">Others</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="priority">Priority Level</label>
+                    <select id="priority" required>
+                        <option value="Low">Low</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label class="switch">
+                        <input type="checkbox" id="requires_road_closure">
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="requires_road_closure" class="checkbox-label">Requires Road Closure</label>
+                </div>
+
+                <div class="form-group">
+                    <label for="start_datetime">Event Start Time</label>
+                    <input type="datetime-local" id="start_datetime" required>
+                </div>
+                
+                <div class="location-info">
+                    <p><i>Click on the map to set event location (Optional)</i></p>
+                    <span id="coord-display">Lat: -, Lng: -</span>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    <span>Forecast Impact</span>
+                    <div class="spinner" id="btnSpinner" style="display: none;"></div>
+                </button>
+            </form>
+        </section>
+
+        <!-- Right Column: Map and Results -->
+        <section class="right-panel">
+            <!-- Map Container -->
+            <div class="glass-panel map-container">
+                <div id="map"></div>
+            </div>
+
+            <!-- Results Dashboard -->
+            <div class="glass-panel results-section hidden" id="resultsPanel">
+                <h2>Forecasting Results</h2>
+                
+                <div class="severity-badge" id="severityBadge">
+                    Impact Severity: <strong id="severityText">--</strong>
+                </div>
+
+                <div class="recommendations">
+                    <div class="rec-card">
+                        <div class="icon">👮</div>
+                        <div class="rec-content">
+                            <h3>Manpower</h3>
+                            <p id="manpowerResult">--</p>
+                        </div>
+                    </div>
+                    
+                    <div class="rec-card">
+                        <div class="icon">🚧</div>
+                        <div class="rec-content">
+                            <h3>Barricading</h3>
+                            <p id="barricadingResult">--</p>
+                        </div>
+                    </div>
+                    
+                    <div class="rec-card">
+                        <div class="icon">🔀</div>
+                        <div class="rec-content">
+                            <h3>Diversion Plan</h3>
+                            <p id="diversionResult">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html>
