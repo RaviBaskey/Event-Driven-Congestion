@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const payload = {
             event_cause: document.getElementById('event_cause').value,
             priority: document.getElementById('priority').value,
-            requires_road_closure: document.getElementById('requires_road_closure').checked,
+            requires_road_closure: false,
             start_datetime: document.getElementById('start_datetime').value.replace('T', ' ') + ':00',
             latitude: selectedLat,
             longitude: selectedLng
