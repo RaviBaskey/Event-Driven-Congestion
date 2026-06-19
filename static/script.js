@@ -5,12 +5,37 @@ document.addEventListener("DOMContentLoaded", () => {
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '© OpenStreetMap'
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
     let currentMarker = null;
     let selectedLat = null;
     let selectedLng = null;
+
+    // Add Geocoder Search Control
+    L.Control.geocoder({
+        defaultMarkGeocode: false,
+        placeholder: "Search location...",
+        collapsed: false,
+        suggestMinLength: 3,
+        suggestTimeout: 250
+    })
+    .on('markgeocode', function(e) {
+        var bbox = e.geocode.bbox;
+        var center = e.geocode.center;
+        
+        map.fitBounds(bbox);
+        
+        if (currentMarker) {
+            map.removeLayer(currentMarker);
+        }
+        selectedLat = center.lat;
+        selectedLng = center.lng;
+        currentMarker = L.marker([selectedLat, selectedLng]).addTo(map);
+        
+        document.getElementById('coord-display').textContent = `Lat: ${selectedLat.toFixed(4)}, Lng: ${selectedLng.toFixed(4)}`;
+    })
+    .addTo(map);
 
     // Handle Map Clicks
     map.on('click', function(e) {
@@ -29,7 +54,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const submitBtn = document.getElementById('submitBtn');
     const btnSpinner = document.getElementById('btnSpinner');
     const btnText = submitBtn.querySelector('span');
-    const resultsPanel = document.getElementById('resultsPanel');
+    const resultsModalOverlay = document.getElementById('resultsModalOverlay');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+
+    closeModalBtn.addEventListener('click', () => {
+        resultsModalOverlay.classList.add('hidden');
+    });
+
+    resultsModalOverlay.addEventListener('click', (e) => {
+        if (e.target === resultsModalOverlay) {
+            resultsModalOverlay.classList.add('hidden');
+        }
+    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -38,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
         submitBtn.disabled = true;
         btnText.textContent = 'Analyzing...';
         btnSpinner.style.display = 'block';
-        resultsPanel.classList.add('hidden');
+        resultsModalOverlay.classList.add('hidden');
 
         // Gather Data
         const payload = {
@@ -80,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateDashboard(data) {
         // Show panel
-        resultsPanel.classList.remove('hidden');
+        resultsModalOverlay.classList.remove('hidden');
 
         // Update Severity
         const sevText = document.getElementById('severityText');

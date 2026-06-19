@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <!-- Leaflet Geocoder CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -70,52 +72,57 @@
             </form>
         </section>
 
-        <!-- Right Column: Map and Results -->
+        <!-- Right Column: Map -->
         <section class="right-panel">
             <!-- Map Container -->
             <div class="glass-panel map-container">
                 <div id="map"></div>
             </div>
-
-            <!-- Results Dashboard -->
-            <div class="glass-panel results-section hidden" id="resultsPanel">
-                <h2>Forecasting Results</h2>
-                
-                <div class="severity-badge" id="severityBadge">
-                    Impact Severity: <strong id="severityText">--</strong>
-                </div>
-
-                <div class="recommendations">
-                    <div class="rec-card">
-                        <div class="icon">👮</div>
-                        <div class="rec-content">
-                            <h3>Manpower</h3>
-                            <p id="manpowerResult">--</p>
-                        </div>
-                    </div>
-                    
-                    <div class="rec-card">
-                        <div class="icon">🚧</div>
-                        <div class="rec-content">
-                            <h3>Barricading</h3>
-                            <p id="barricadingResult">--</p>
-                        </div>
-                    </div>
-                    
-                    <div class="rec-card">
-                        <div class="icon">🔀</div>
-                        <div class="rec-content">
-                            <h3>Diversion Plan</h3>
-                            <p id="diversionResult">--</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </section>
     </main>
 
+    <!-- Results Modal Overlay -->
+    <div class="modal-overlay hidden" id="resultsModalOverlay">
+        <div class="glass-panel results-section" id="resultsPanel">
+            <button class="close-btn" id="closeModalBtn">&times;</button>
+            <h2>Forecasting Results</h2>
+            
+            <div class="severity-badge" id="severityBadge">
+                Impact Severity: <strong id="severityText">--</strong>
+            </div>
+
+            <div class="recommendations">
+                <div class="rec-card">
+                    <div class="icon">👮</div>
+                    <div class="rec-content">
+                        <h3>Manpower</h3>
+                        <p id="manpowerResult">--</p>
+                    </div>
+                </div>
+                
+                <div class="rec-card">
+                    <div class="icon">🚧</div>
+                    <div class="rec-content">
+                        <h3>Barricading</h3>
+                        <p id="barricadingResult">--</p>
+                    </div>
+                </div>
+                
+                <div class="rec-card">
+                    <div class="icon">🔀</div>
+                    <div class="rec-content">
+                        <h3>Diversion Plan</h3>
+                        <p id="diversionResult">--</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <!-- Leaflet Geocoder JS -->
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <!-- Custom JS -->
     <script src="script.js"></script>
 </body>
