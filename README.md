@@ -29,7 +29,7 @@
 
 ### Step 1 — Clone & Environment
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/RaviBaskey/Event-Driven-Congestion
 cd FlowCast
 
 # Create and activate a virtual environment
