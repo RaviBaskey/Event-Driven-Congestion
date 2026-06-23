@@ -3,127 +3,392 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlowCast - Traffic Impact Predictor</title>
+    <title>FlowCast — Smart Traffic Command Platform</title>
+    <meta name="description" content="FlowCast is an intelligent event-driven traffic management platform for traffic police and the general public. Report incidents, predict congestion, and find the best routes in real-time.">
+
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-    <!-- Leaflet Geocoder CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- TomTom SDK CSS -->
+    <link rel="stylesheet" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css" />
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="background-shapes">
-        <div class="shape shape-1"></div>
-        <div class="shape shape-2"></div>
-        <div class="shape shape-3"></div>
+
+<!-- ═══════════════════════════════════════════
+     LANDING PAGE — ROLE SELECTION
+═══════════════════════════════════════════ -->
+<div id="landing-page" class="landing-page">
+    <div class="landing-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="grid-overlay"></div>
     </div>
 
-    <header class="glass-header">
-        <h1>FlowCast</h1>
-        <p>Intelligent Event-Driven Traffic Impact Forecaster & Resource Allocator</p>
+    <div class="landing-content">
+        <div class="brand-logo">
+            <div class="logo-icon">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <path d="M20 4L36 12V28L20 36L4 28V12L20 4Z" stroke="url(#grad1)" stroke-width="2" fill="none"/>
+                    <path d="M20 10L30 15V25L20 30L10 25V15L20 10Z" fill="url(#grad2)" opacity="0.4"/>
+                    <circle cx="20" cy="20" r="4" fill="url(#grad1)"/>
+                    <defs>
+                        <linearGradient id="grad1" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#6366f1"/>
+                            <stop offset="100%" stop-color="#0ea5e9"/>
+                        </linearGradient>
+                        <linearGradient id="grad2" x1="10" y1="10" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#6366f1"/>
+                            <stop offset="100%" stop-color="#0ea5e9"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <h1 class="brand-name">FlowCast</h1>
+        </div>
+        <p class="brand-tagline">Intelligent Traffic Command Platform</p>
+        <p class="brand-sub">Predict incidents. Route smarter. Clear faster.</p>
+
+        <div class="role-cards">
+            <!-- Admin Card -->
+            <div class="role-card role-card--admin" id="adminCard">
+                <div class="role-card-icon">🚔</div>
+                <h2 class="role-card-title">Traffic Command Center</h2>
+                <p class="role-card-desc">Report events, predict impact severity, manage active incidents and approve community reports.</p>
+                <div class="pin-section">
+                    <input type="password" id="adminPinInput" class="pin-input" placeholder="Enter Admin PIN" maxlength="6" autocomplete="off">
+                    <button class="role-btn role-btn--admin" id="adminLoginBtn" onclick="loginAsAdmin()">
+                        <span>Enter Command Center</span>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0l8 8-8 8-1.4-1.4L12.2 9H0V7h12.2L6.6 1.4 8 0z"/></svg>
+                    </button>
+                    <p class="pin-hint">Default PIN: <strong>1234</strong></p>
+                </div>
+            </div>
+
+            <!-- Public Card -->
+            <div class="role-card role-card--public" id="publicCard">
+                <div class="role-card-icon">🗺️</div>
+                <h2 class="role-card-title">Navigate Smarter</h2>
+                <p class="role-card-desc">Get congestion-aware routes and report live incidents to authorities for faster clearance.</p>
+                <button class="role-btn role-btn--public" onclick="loginAsPublic()">
+                    <span>Open Navigation</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0l8 8-8 8-1.4-1.4L12.2 9H0V7h12.2L6.6 1.4 8 0z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     APP SHELL (Admin + Public Views)
+═══════════════════════════════════════════ -->
+<div id="app-shell" class="app-shell hidden">
+
+    <!-- HEADER -->
+    <header class="app-header" id="appHeader">
+        <div class="header-left">
+            <div class="header-brand">
+                <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+                    <path d="M20 4L36 12V28L20 36L4 28V12L20 4Z" stroke="url(#hg1)" stroke-width="2" fill="none"/>
+                    <circle cx="20" cy="20" r="4" fill="url(#hg1)"/>
+                    <defs>
+                        <linearGradient id="hg1" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#6366f1"/>
+                            <stop offset="100%" stop-color="#0ea5e9"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span class="header-logo-text">FlowCast</span>
+            </div>
+            <div class="role-badge" id="roleBadge">—</div>
+        </div>
+        <div class="header-right">
+            <button class="switch-role-btn" onclick="switchRole()">⇄ Switch Role</button>
+        </div>
     </header>
 
-    <main class="container">
-        <!-- Left Column: Input Form -->
-        <section class="glass-panel input-section">
-            <h2>Event Details</h2>
-            <form id="eventForm">
-                <div class="form-group">
-                    <label for="event_cause">Event Cause</label>
-                    <select id="event_cause" required>
-                        <option value="" disabled selected>Select cause...</option>
-                        <option value="vehicle_breakdown">Vehicle Breakdown</option>
-                        <option value="tree_fall">Tree Fall</option>
-                        <option value="water_logging">Water Logging</option>
-                        <option value="pot_holes">Pot Holes</option>
-                        <option value="public_event">Public Event</option>
-                        <option value="construction">Construction</option>
-                        <option value="accident">Accident</option>
-                        <option value="others">Others</option>
-                    </select>
+    <!-- ─── ADMIN VIEW ─── -->
+    <div id="admin-view" class="view-panel hidden">
+        <div class="admin-layout">
+
+            <!-- Left: Tabbed Sidebar -->
+            <aside class="admin-sidebar">
+
+                <!-- Tab Nav -->
+                <nav class="tab-nav" id="adminTabNav">
+                    <button class="tab-btn active" data-tab="adminTabReport" onclick="switchTab('admin','adminTabReport',this)">📋 Report</button>
+                    <button class="tab-btn" data-tab="adminTabQueue" onclick="switchTab('admin','adminTabQueue',this)">
+                        ⏳ Queue <span class="tab-badge" id="sidebarPendingCount">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="adminTabLive" onclick="switchTab('admin','adminTabLive',this)">
+                        🔴 Live <span class="tab-badge" id="sidebarEventCount">0</span>
+                    </button>
+                </nav>
+
+                <!-- Tab: Report Incident -->
+                <div class="tab-panel" id="adminTabReport">
+                    <form id="adminEventForm">
+                        <div class="form-group">
+                            <label for="admin_event_cause">Event Cause</label>
+                            <select id="admin_event_cause" required>
+                                <option value="" disabled selected>Select cause…</option>
+                                <option value="vehicle_breakdown">🚗 Vehicle Breakdown</option>
+                                <option value="tree_fall">🌳 Tree Fall</option>
+                                <option value="water_logging">💧 Water Logging</option>
+                                <option value="pot_holes">🕳️ Pot Holes</option>
+                                <option value="public_event">🎉 Public Event / Rally</option>
+                                <option value="construction">🏗️ Construction Work</option>
+                                <option value="accident">🚨 Accident</option>
+                                <option value="others">• Others</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin_priority">Priority Level</label>
+                            <select id="admin_priority" required>
+                                <option value="Low">🟢 Low</option>
+                                <option value="Medium">🟡 Medium</option>
+                                <option value="High">🔴 High</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin_event_type">Event Type</label>
+                            <select id="admin_event_type">
+                                <option value="unplanned">Unplanned</option>
+                                <option value="planned">Planned</option>
+                            </select>
+                        </div>
+
+                        <div class="checkbox-row">
+                            <label class="toggle-label" for="admin_road_closure">
+                                <span>Requires Road Closure</span>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="admin_road_closure">
+                                    <span class="toggle-track"></span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin_start_datetime">Start Time</label>
+                            <input type="datetime-local" id="admin_start_datetime" required>
+                        </div>
+
+                        <div class="location-picker">
+                            <p class="location-hint">📍 Click on the map to pin the incident location</p>
+                            <div class="coord-display" id="adminCoordDisplay">
+                                <span>Lat: —</span><span>Lng: —</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn" id="adminSubmitBtn">
+                            <span id="adminBtnText">🔍 Analyze &amp; Report</span>
+                            <div class="btn-spinner hidden" id="adminBtnSpinner"></div>
+                        </button>
+                    </form>
                 </div>
 
-                <div class="form-group">
-                    <label for="priority">Priority Level</label>
-                    <select id="priority" required>
-                        <option value="Low">Low</option>
-                        <option value="High">High</option>
-                    </select>
-                </div>
-
-
-
-                <div class="form-group">
-                    <label for="start_datetime">Event Start Time</label>
-                    <input type="datetime-local" id="start_datetime" required>
-                </div>
-                
-                <div class="location-info">
-                    <p><i>Click on the map to set event location</i></p>
-                    <span id="coord-display">Lat: -, Lng: -</span>
-                </div>
-
-                <button type="submit" class="btn-primary" id="submitBtn">
-                    <span>Forecast Impact</span>
-                    <div class="spinner" id="btnSpinner" style="display: none;"></div>
-                </button>
-            </form>
-        </section>
-
-        <!-- Right Column: Map -->
-        <section class="right-panel">
-            <!-- Map Container -->
-            <div class="glass-panel map-container">
-                <div id="map"></div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Results Modal Overlay -->
-    <div class="modal-overlay hidden" id="resultsModalOverlay">
-        <div class="glass-panel results-section" id="resultsPanel">
-            <button class="close-btn" id="closeModalBtn">&times;</button>
-            <h2>Forecasting Results</h2>
-            
-            <div class="severity-badge" id="severityBadge">
-                Impact Severity: <strong id="severityText">--</strong>
-            </div>
-
-            <div class="recommendations">
-                <div class="rec-card">
-                    <div class="icon">👮</div>
-                    <div class="rec-content">
-                        <h3>Manpower</h3>
-                        <p id="manpowerResult">--</p>
+                <!-- Tab: Approval Queue -->
+                <div class="tab-panel hidden" id="adminTabQueue">
+                    <div class="events-feed" id="pendingEventsFeed">
+                        <div class="empty-feed">No pending reports</div>
                     </div>
                 </div>
-                
-                <div class="rec-card">
-                    <div class="icon">🚧</div>
-                    <div class="rec-content">
-                        <h3>Barricading</h3>
-                        <p id="barricadingResult">--</p>
+
+                <!-- Tab: Active Incidents -->
+                <div class="tab-panel hidden" id="adminTabLive">
+                    <div class="events-feed" id="eventsFeed">
+                        <div class="empty-feed">No active incidents reported</div>
                     </div>
                 </div>
-                
-                <div class="rec-card">
-                    <div class="icon">🔀</div>
-                    <div class="rec-content">
-                        <h3>Diversion Plan</h3>
-                        <p id="diversionResult">--</p>
-                    </div>
+
+            </aside>
+
+            <!-- Right: Map -->
+            <div class="map-wrapper" id="adminMapWrapper">
+                <div id="admin-map" class="map-canvas"></div>
+
+                <!-- Commander Detail Slide-out Card -->
+                <div id="commanderDetailCard" class="commander-detail-card hidden"></div>
+
+                <div class="map-legend" id="adminLegend">
+                    <div class="legend-title">Severity Legend</div>
+                    <div class="legend-item"><span class="legend-dot dot-high"></span> High</div>
+                    <div class="legend-item"><span class="legend-dot dot-medium"></span> Medium</div>
+                    <div class="legend-item"><span class="legend-dot dot-low"></span> Low</div>
+                    <div class="legend-item"><span class="legend-dot dot-pending"></span> Pending</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <!-- Leaflet Geocoder JS -->
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <!-- Custom JS -->
-    <script src="script.js"></script>
+    <!-- ─── PUBLIC VIEW ─── -->
+    <div id="public-view" class="view-panel hidden">
+        <div class="public-layout">
+
+            <!-- Left: Tabbed Sidebar -->
+            <aside class="public-sidebar">
+
+                <!-- Tab Nav -->
+                <nav class="tab-nav" id="publicTabNav">
+                    <button class="tab-btn active" data-tab="publicTabRoute" onclick="switchTab('public','publicTabRoute',this)">🧭 Route</button>
+                    <button class="tab-btn" data-tab="publicTabReport" onclick="switchTab('public','publicTabReport',this)">📢 Report</button>
+                    <button class="tab-btn" data-tab="publicTabLive" onclick="switchTab('public','publicTabLive',this)">
+                        ⚠️ Live <span class="tab-badge" id="publicEventCount">0</span>
+                    </button>
+                </nav>
+
+                <!-- Tab: Route Planner -->
+                <div class="tab-panel" id="publicTabRoute">
+                    <div class="route-inputs">
+                        <div class="route-input-group">
+                            <div class="route-dot route-dot--source"></div>
+                            <input type="text" id="sourceInput" class="route-input" placeholder="From: Start location" autocomplete="off">
+                            <button class="locate-btn" id="locateMeBtn" title="Use my location">📍</button>
+                        </div>
+                        <div class="route-divider">
+                            <div class="divider-line"></div>
+                            <button class="swap-btn" id="swapBtn" title="Swap locations">⇅</button>
+                        </div>
+                        <div class="route-input-group">
+                            <div class="route-dot route-dot--dest"></div>
+                            <input type="text" id="destInput" class="route-input" placeholder="To: Destination" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <button class="submit-btn" id="routeBtn" onclick="planRoute()">
+                        <span>🗺️ Find Smart Routes</span>
+                    </button>
+
+                    <!-- Suggestions dropdown -->
+                    <div id="sourceSuggestions" class="suggestions-box hidden"></div>
+                    <div id="destSuggestions" class="suggestions-box hidden"></div>
+
+                    <!-- Route Results (inside route tab) -->
+                    <div id="routeResultsSection" style="display:none; margin-top:1rem;">
+                        <h2 class="sidebar-title" style="font-size:0.85rem; margin-bottom:0.5rem;">
+                            <span class="title-icon">📊</span> Route Options
+                        </h2>
+                        <div id="routeCards" class="route-cards"></div>
+                    </div>
+                </div>
+
+                <!-- Tab: Report Incident -->
+                <div class="tab-panel hidden" id="publicTabReport">
+                    <p class="location-hint" style="color:var(--light-muted); margin-bottom:1rem;">Click on the map to pin the incident.</p>
+                    <form id="publicReportForm" class="hidden">
+                        <div class="coord-display" id="publicCoordDisplay">
+                            <span>Lat: —</span><span>Lng: —</span>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0.5rem;">
+                            <select id="public_event_cause" required>
+                                <option value="" disabled selected>Select cause…</option>
+                                <option value="vehicle_breakdown">🚗 Vehicle Breakdown</option>
+                                <option value="tree_fall">🌳 Tree Fall</option>
+                                <option value="water_logging">💧 Water Logging</option>
+                                <option value="pot_holes">🕳️ Pot Holes</option>
+                                <option value="public_event">🎉 Public Event / Rally</option>
+                                <option value="construction">🏗️ Construction Work</option>
+                                <option value="accident">🚨 Accident</option>
+                                <option value="others">• Others</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="submit-btn" id="publicSubmitBtn" style="background:var(--sev-medium); color:black;">
+                            <span id="publicBtnText">Send Report to Commander</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Tab: Live Incidents -->
+                <div class="tab-panel hidden" id="publicTabLive">
+                    <div class="events-feed" id="publicEventsFeed">
+                        <div class="empty-feed">No active incidents nearby</div>
+                    </div>
+                </div>
+
+            </aside>
+
+            <!-- Map -->
+            <div class="map-wrapper">
+                <div id="public-map" class="map-canvas"></div>
+                <div class="map-legend">
+                    <div class="legend-title">Map Legend</div>
+                    <div class="legend-item"><span class="legend-dot dot-high"></span> High Severity</div>
+                    <div class="legend-item"><span class="legend-dot dot-medium"></span> Medium Severity</div>
+                    <div class="legend-item"><span class="legend-dot dot-low"></span> Low Severity</div>
+                    <div class="legend-item"><span class="legend-route-best"></span> Smart Route</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- end #app-shell -->
+
+<!-- ═══════════════════════════════════════════
+     ADMIN RESULT MODAL
+═══════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="resultModal">
+    <div class="modal-card" id="resultModalCard">
+        <button class="modal-close" onclick="closeModal('resultModal')">✕</button>
+
+        <div class="modal-header">
+            <div class="modal-icon" id="resultModalIcon">🚨</div>
+            <div>
+                <h2 class="modal-title">Incident Analysis</h2>
+                <p class="modal-sub" id="resultModalCause">—</p>
+            </div>
+        </div>
+
+        <div class="severity-row">
+            <div class="severity-chip" id="severityChip">—</div>
+            <div class="etr-chip" id="etrChip">ETR: —</div>
+        </div>
+
+        <div class="rec-grid" id="recGrid">
+            <div class="rec-item">
+                <div class="rec-icon">👮</div>
+                <div class="rec-text">
+                    <div class="rec-label">Manpower</div>
+                    <div class="rec-value" id="recManpower">—</div>
+                </div>
+            </div>
+            <div class="rec-item">
+                <div class="rec-icon">🚧</div>
+                <div class="rec-text">
+                    <div class="rec-label">Barricading</div>
+                    <div class="rec-value" id="recBarricading">—</div>
+                </div>
+            </div>
+            <div class="rec-item" style="grid-column: 1/-1;">
+                <div class="rec-icon">🔀</div>
+                <div class="rec-text">
+                    <div class="rec-label">Diversion Plan</div>
+                    <div class="rec-value" id="recDiversion">—</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer-note" id="modalFooterAction">✅ Incident marked on map — expires in <strong id="expiryLabel">—</strong></div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     TOAST NOTIFICATION
+═══════════════════════════════════════════ -->
+<div class="toast hidden" id="toast">
+    <span id="toastMessage">—</span>
+</div>
+
+<!-- TomTom SDK JS -->
+<script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
+<script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/services/services-web.min.js"></script>
+
+<!-- Custom JS -->
+<script src="script.js"></script>
+
 </body>
 </html>

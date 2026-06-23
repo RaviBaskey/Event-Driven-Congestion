@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 import joblib
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, mean_absolute_error, r2_score
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -22,11 +22,13 @@ def load_and_preprocess(file_path):
     df['day_of_week'] = df['start_datetime'].dt.dayofweek
     df['month'] = df['start_datetime'].dt.month
     
-    # Duration in hours
+    # Duration in hours — this is our ETR regression target
     df['duration_hours'] = (df['closed_datetime'] - df['start_datetime']).dt.total_seconds() / 3600.0
     # Fill missing durations with median
     median_duration = df['duration_hours'].median()
     df['duration_hours'] = df['duration_hours'].fillna(median_duration)
+    # Clamp ETR to realistic range: 15 minutes to 24 hours
+    df['duration_hours'] = df['duration_hours'].clip(lower=0.25, upper=24.0)
     
     # Handle missing values for categorical features
     df['event_cause'] = df['event_cause'].fillna('unknown')
@@ -47,7 +49,8 @@ def load_and_preprocess(file_path):
                 'hour', 'day_of_week', 'month']
     
     X = df[features].copy()
-    y = df['impact_severity']
+    y_class = df['impact_severity']
+    y_etr = df['duration_hours']
     
     # Convert boolean to int
     X['requires_road_closure'] = X['requires_road_closure'].astype(int)
@@ -58,43 +61,74 @@ def load_and_preprocess(file_path):
     
     for col in categorical_cols:
         le = LabelEncoder()
-        # Convert to string and handle unseen classes during prediction later
         X[col] = le.fit_transform(X[col].astype(str))
         encoders[col] = le
         
-    # Also encode the target
+    # Also encode the classification target
     target_le = LabelEncoder()
-    y_encoded = target_le.fit_transform(y)
+    y_class_encoded = target_le.fit_transform(y_class)
     encoders['target'] = target_le
     
     # Handle remaining NaNs
     X = X.fillna(0)
     
-    return X, y_encoded, encoders, df
+    return X, y_class_encoded, y_etr, encoders, df
 
-def train_model(X, y):
-    print("Training Random Forest Classifier...")
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+def train_severity_classifier(X, y):
+    """Train the Random Forest Classifier for impact severity prediction."""
+    print("\n--- Training Severity Classifier (RandomForestClassifier) ---")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
     
     clf = RandomForestClassifier(n_estimators=100, random_state=42, max_depth=10)
     clf.fit(X_train, y_train)
     
-    print("Evaluating Model...")
+    print("Evaluating Classifier...")
     y_pred = clf.predict(X_test)
-    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred))
     
     return clf
 
+
+def train_etr_regressor(X, y_etr):
+    """Train the Random Forest Regressor for Estimated Time to Resolution (ETR)."""
+    print("\n--- Training ETR Regressor (RandomForestRegressor) ---")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y_etr, test_size=0.2, random_state=42
+    )
+    
+    reg = RandomForestRegressor(n_estimators=100, random_state=42, max_depth=10)
+    reg.fit(X_train, y_train)
+    
+    print("Evaluating Regressor...")
+    y_pred = reg.predict(X_test)
+    mae = mean_absolute_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+    print(f"Mean Absolute Error: {mae:.4f} hours")
+    print(f"R² Score:            {r2:.4f}")
+    
+    return reg
+
+
 if __name__ == "__main__":
     file_path = 'dataset.csv'
-    X, y_encoded, encoders, raw_df = load_and_preprocess(file_path)
+    X, y_class_encoded, y_etr, encoders, raw_df = load_and_preprocess(file_path)
     
-    model = train_model(X, y_encoded)
+    # Train both models
+    clf_model = train_severity_classifier(X, y_class_encoded)
+    etr_model = train_etr_regressor(X, y_etr)
     
-    # Save the model and encoders
-    print("Saving model and encoders...")
-    joblib.dump(model, 'impact_model.pkl')
+    # Save all artifacts
+    print("\nSaving models and encoders...")
+    joblib.dump(clf_model, 'impact_model.pkl')
+    joblib.dump(etr_model, 'etr_model.pkl')
     joblib.dump(encoders, 'encoders.pkl')
-    print("Done! Model saved as 'impact_model.pkl'")
+    
+    print("\n[DONE] All models saved successfully!")
+    print("  -> impact_model.pkl  (Severity Classifier)")
+    print("  -> etr_model.pkl     (ETR Regressor)")
+    print("  -> encoders.pkl      (Label Encoders)")
